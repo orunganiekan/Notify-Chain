@@ -358,10 +358,10 @@ Receives a signed webhook event payload. The request must carry a valid HMAC-SHA
 
 **Required Headers**
 
-| Header            | Description                                      |
-|-------------------|--------------------------------------------------|
-| `X-Signature`     | HMAC-SHA256 hex digest of the raw request body   |
-| `X-Key-Id`        | Identifier selecting which secret to verify with |
+| Header                  | Description                                      |
+|-------------------------|--------------------------------------------------|
+| `X-Webhook-Signature`   | HMAC-SHA256 hex digest of the raw request body   |
+| `X-Webhook-Key-Id`      | Identifier selecting which secret to verify with |
 
 **Response `202`**
 
@@ -375,19 +375,19 @@ Receives a signed webhook event payload. The request must carry a valid HMAC-SHA
 { "error": "Failed to read request body" }
 ```
 
-**Response `401`** — `X-Signature` header absent
+**Response `401`** — `X-Webhook-Signature` header absent
 
 ```json
 { "error": "Missing signature header" }
 ```
 
-**Response `401`** — `X-Key-Id` header absent
+**Response `401`** — `X-Webhook-Key-Id` header absent
 
 ```json
 { "error": "Missing key-id header" }
 ```
 
-**Response `401`** — `X-Key-Id` value does not match any registered secret
+**Response `401`** — `X-Webhook-Key-Id` value does not match any registered secret
 
 ```json
 { "error": "Unknown key-id" }
@@ -638,21 +638,21 @@ X-Request-Id: f3a2c1b0-...
 
 ### 401 Unauthorized
 
-All `401` errors come from the `POST /api/webhooks` endpoint when signature verification fails. The request must carry both `X-Signature` and `X-Key-Id` headers.
+All `401` errors come from the `POST /api/webhooks` endpoint when signature verification fails. The request must carry both `X-Webhook-Signature` and `X-Webhook-Key-Id` headers.
 
 | Error message | Cause | Fix |
 |---|---|---|
-| `"Missing signature header"` | `X-Signature` header is absent | Add the header with an HMAC-SHA256 hex digest of the raw request body |
-| `"Missing key-id header"` | `X-Key-Id` header is absent | Add the header with the ID of the signing key used |
-| `"Unknown key-id"` | The `X-Key-Id` value does not match any key registered with the server | Use a key ID that the server was started with |
+| `"Missing signature header"` | `X-Webhook-Signature` header is absent | Add the header with an HMAC-SHA256 hex digest of the raw request body |
+| `"Missing key-id header"` | `X-Webhook-Key-Id` header is absent | Add the header with the ID of the signing key used |
+| `"Unknown key-id"` | The `X-Webhook-Key-Id` value does not match any key registered with the server | Use a key ID that the server was started with |
 | `"Invalid signature"` | The signature does not match the server's HMAC computation | Re-sign the raw body bytes with the correct secret; ensure no encoding transformation is applied to the body in transit |
 
 **Example — wrong secret**
 
 ```http
 POST /api/webhooks HTTP/1.1
-X-Signature: aabbccdd...
-X-Key-Id: key-prod-1
+X-Webhook-Signature: aabbccdd...
+X-Webhook-Key-Id: key-prod-1
 Content-Type: application/json
 
 { "event": "TaskCreated", "contractAddress": "CCEMX6..." }
